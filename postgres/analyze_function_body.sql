@@ -1,13 +1,13 @@
 --
 -- PLPGSQL_STMT_ASSIGN
 --
-CREATE OR REPLACE FUNCTION example_assign()
+CREATE OR REPLACE FUNCTION demo_assign()
 RETURNS VOID AS
 $$
 DECLARE
   a INTEGER := 10;
 BEGIN
-  -- Your statements here
+  a := max(10, b);
 END;
 $$
 LANGUAGE plpgsql;
@@ -15,7 +15,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_PERFORM
 --
-CREATE OR REPLACE FUNCTION example_perform()
+CREATE OR REPLACE FUNCTION demo_perform()
 RETURNS VOID AS
 $$
 BEGIN
@@ -27,7 +27,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_CALL
 --
-CREATE OR REPLACE FUNCTION example_call()
+CREATE OR REPLACE FUNCTION demo_call()
 RETURNS VOID AS
 $$
 BEGIN
@@ -39,14 +39,18 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_IF
 --
-CREATE OR REPLACE FUNCTION example_if()
-RETURNS VOID AS
+CREATE OR REPLACE FUNCTION demo_if(a INT)
+RETURNS INT AS
 $$
 DECLARE
-  a INTEGER := 10;
+  b INT;
 BEGIN
-  IF a > 5 THEN
-    -- Your statements here
+  IF a > 5 and a < 10 THEN
+    SELECT total INTO b FROM orders WHERE id = a; 
+  ELSIF a < 5 THEN
+    SELECT total INTO b FROM orders WHERE id = a; 
+  ELSE
+    SELECT total INTO b FROM orders WHERE id = a;
   END IF;
 END;
 $$
@@ -55,7 +59,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_CASE
 --
-CREATE OR REPLACE FUNCTION example_case()
+CREATE OR REPLACE FUNCTION demo_case()
 RETURNS VOID AS
 $$
 DECLARE
@@ -72,7 +76,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_LOOP
 --
-CREATE OR REPLACE FUNCTION example_loop()
+CREATE OR REPLACE FUNCTION demo_loop()
 RETURNS VOID AS
 $$
 DECLARE
@@ -89,7 +93,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_WHILE
 --
-CREATE OR REPLACE FUNCTION example_while()
+CREATE OR REPLACE FUNCTION demo_while()
 RETURNS VOID AS
 $$
 DECLARE
@@ -105,30 +109,53 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_FORI
 --
-CREATE OR REPLACE FUNCTION example_fori()
+CREATE OR REPLACE FUNCTION demo_fori()
 RETURNS VOID AS
 $$
 DECLARE
   a INTEGER;
+  b INTEGER;
 BEGIN
   FOR a IN 1..10 LOOP
-    -- Your statements here
+    select total into b from orders where id = a;
   END LOOP;
 END;
 $$
 LANGUAGE plpgsql;
 
+-- procedure
+CREATE OR REPLACE PROCEDURE pr_foo()
+AS
+$$
+DECLARE
+  var_start int := 0;
+  var_end   int := 1;
+  var_sum   int := 0;
+  totalsum  int := 0;
+BEGIN
+   FOR i in var_start..var_end LOOP
+     raise notice 'iteration %', i;
+     select total into var_sum from orders where id = i;
+     totalsum := totalsum + var_sum;
+   END LOOP;
+   raise notice 'totalsum %', totalsum;
+END;
+$$
+LANGUAGE plpgsql;
+
+
 --
 -- PLPGSQL_STMT_FORC
 --
-CREATE OR REPLACE FUNCTION example_forc()
+CREATE OR REPLACE FUNCTION demo_forc()
 RETURNS VOID AS
 $$
 DECLARE
-  x text;
+  rec RECORD;
+  my_cursor CURSOR FOR SELECT id, name FROM my_table;
 BEGIN
-  FOR x IN SELECT name FROM some_table LOOP
-    RAISE NOTICE 'Name: %', x;
+  FOR rec IN my_cursor LOOP
+    RAISE NOTICE 'ID: %, Name: %', rec.id, rec.name;
   END LOOP;
 END;
 $$
@@ -137,7 +164,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_FORS
 --
-CREATE OR REPLACE FUNCTION example_fors()
+CREATE OR REPLACE FUNCTION demo_fors()
 RETURNS VOID AS
 $$
 DECLARE
@@ -153,7 +180,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_FOREACH_A
 --
-CREATE OR REPLACE FUNCTION example_foreach_a()
+CREATE OR REPLACE FUNCTION demo_foreach_a()
 RETURNS VOID AS
 $$
 DECLARE
@@ -172,7 +199,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_RETURN_NEXT
 --
-CREATE OR REPLACE FUNCTION example_return_next()
+CREATE OR REPLACE FUNCTION demo_return_next()
 RETURNS SETOF orders AS
 $$
 DECLARE
@@ -189,7 +216,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_RETURN_QUERY
 --
-CREATE OR REPLACE FUNCTION example_return_query()
+CREATE OR REPLACE FUNCTION demo_return_query()
 RETURNS SETOF orders AS
 $$
 BEGIN
@@ -201,11 +228,30 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_EXECSQL
 --
-CREATE OR REPLACE FUNCTION example_execsql()
+CREATE OR REPLACE FUNCTION demo_execsql()
 RETURNS VOID AS
 $$
+DECLARE
+  var_id INTEGER;
+  var_total INTEGER;
 BEGIN
-  EXECUTE 'SELECT * FROM orders';
+  SELECT id, total into var_id, var_total FROM orders;
+  raise notice 'ID: %, Total: %', var_id, var_total;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION demo_execsql2(
+  p_id INTEGER,
+  p_total INTEGER
+)
+RETURNS VARCHAR AS
+$$
+DECLARE
+  var_id INTEGER;
+BEGIN
+  INSERT INTO orders (id, total) VALUES (p_id, p_total) RETURNING id INTO var_id2;
+  RETURN 'ID: ' || var_id;
 END;
 $$
 LANGUAGE plpgsql;
@@ -213,7 +259,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_DYNEXECUTE
 --
-CREATE OR REPLACE FUNCTION example_dynexecute()
+CREATE OR REPLACE FUNCTION demo_dynexecute()
 RETURNS VOID AS
 $$
 DECLARE
@@ -226,12 +272,12 @@ END;
 --
 -- PLPGSQL_STMT_OPEN
 --
-CREATE OR REPLACE FUNCTION example_open()
+CREATE OR REPLACE FUNCTION demo_open()
 RETURNS VOID AS
 $$
 DECLARE
   r RECORD;
-  c CURSOR FOR SELECT * FROM orders;
+  c CURSOR FOR SELECT id, total FROM orders;
 BEGIN
   OPEN c;
   FETCH c INTO r;
@@ -243,7 +289,7 @@ LANGUAGE plpgsql;
 --
 -- PLPGSQL_STMT_DYNFORS
 --
-CREATE OR REPLACE FUNCTION example_dynfors()
+CREATE OR REPLACE FUNCTION demo_dynfors()
 RETURNS VOID AS
 $$
 DECLARE

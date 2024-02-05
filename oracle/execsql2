@@ -1,0 +1,14 @@
+CREATE OR REPLACE FUNCTION demo_execsql2(
+  p_id INTEGER,
+  p_total INTEGER
+)
+RETURNS VARCHAR AS
+$$
+DECLARE
+  var_id INTEGER;
+BEGIN
+  INSERT INTO orders (id, total) VALUES (p_id, p_total) RETURNING id INTO var_id2;
+  RETURN 'ID: ' || var_id;
+END;
+$$
+LANGUAGE plpgsql;
