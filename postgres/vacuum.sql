@@ -59,6 +59,9 @@ SELECT * FROM heap_page('hot',0);
 SELECT lower, upper, pagesize FROM page_header(get_raw_page('hot',0));
 
 -- page pruning occurred
+--
+-- Any tuple retrieval sql statement can trigger page prune.(UPDATE, DELETE, SELECT).
+-- INSERT ... VALUES not because it does not retrieve a row.
 select * from hot;
 
 -- dead tuple.
