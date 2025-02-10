@@ -2,7 +2,7 @@
 -- Returns a random text with at least length `length(gen_random_uuid())`
 -- and with length equal to or slightly greater than `len`
 --
-create or replace function long_random_text(len int)
+create or replace function long_random_text(len int default 2048)
 returns text
 as $$
 with recursive
